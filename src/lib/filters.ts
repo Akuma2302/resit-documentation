@@ -36,7 +36,12 @@ export function receiptWhere(f: ReceiptFilters): Prisma.ReceiptWhereInput {
   const from = f.from ? parseDateInput(f.from) : null
   const to = f.to ? parseDateInput(f.to) : null
   if (from || to) where.receiptDate = { ...(from && { gte: from }), ...(to && { lte: to }) }
-  if (f.q) where.OR = [{ counterparty: { contains: f.q } }, { note: { contains: f.q } }]
+  if (f.q) {
+    where.OR = [
+      { counterparty: { contains: f.q, mode: 'insensitive' } },
+      { note: { contains: f.q, mode: 'insensitive' } },
+    ]
+  }
   return where
 }
 

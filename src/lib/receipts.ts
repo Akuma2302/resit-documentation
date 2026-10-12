@@ -1,10 +1,7 @@
 import { randomUUID } from 'crypto'
-import { mkdir, writeFile } from 'fs/promises'
-import path from 'path'
 import { db } from './db'
 import { parseAmountToCents, parseDateInput } from './format'
-
-export const UPLOAD_DIR = path.join(process.cwd(), 'uploads')
+import { putImage } from './storage'
 
 const IMAGE_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -18,8 +15,7 @@ export async function saveReceiptImage(file: Blob): Promise<{ name: string } | {
   if (!ext) return { error: 'The receipt must be a JPG, PNG or WebP image.' }
   if (file.size > MAX_IMAGE_BYTES) return { error: 'The image is larger than 8 MB.' }
   const name = `${randomUUID()}.${ext}`
-  await mkdir(UPLOAD_DIR, { recursive: true })
-  await writeFile(path.join(UPLOAD_DIR, name), Buffer.from(await file.arrayBuffer()))
+  await putImage(name, await file.arrayBuffer())
   return { name }
 }
 

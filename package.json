@@ -5,12 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:netlify": "node scripts/netlify-build.js",
+    "postinstall": "prisma generate",
     "start": "next start",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
     "setup": "prisma db push && node prisma/seed.js"
   },
   "dependencies": {
+    "@netlify/blobs": "8.2.0",
     "@prisma/client": "5.22.0",
     "bcryptjs": "2.4.3",
     "exceljs": "4.4.0",

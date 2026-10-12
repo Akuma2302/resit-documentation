@@ -25,39 +25,52 @@ price, and an admin approves it and tracks money in and out. All amounts are in 
 
 Only approved receipts count in the dashboard totals.
 
-## Setup
+## Run locally
 
-Requires Node.js 18.18 or newer.
+Requires Node.js 18.18 or newer and a PostgreSQL database (a free Neon database works).
 
 ```bash
 npm install
 ```
 
-Copy `.env.example` to `.env`, then set `SESSION_SECRET` to a long random string and change
-the seed passwords.
+Copy `.env.example` to `.env`, then set `DATABASE_URL` to your PostgreSQL connection string,
+`SESSION_SECRET` to a long random string, and change the seed passwords.
 
 ```bash
 npm run setup
 ```
 
-This creates the SQLite database and the starting accounts, purposes and payers. The login
-details for the two starting accounts are the `SEED_*` values in `.env`.
+This creates the tables and the starting accounts, purposes and payers. The login details
+for the two starting accounts are the `SEED_*` values in `.env`.
 
 ```bash
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000. Run locally, receipt images are saved in `uploads/`.
+
+## Deploy to Netlify
+
+1. In Netlify, choose **Add new site > Import an existing project** and pick this repository.
+   The build settings come from `netlify.toml`.
+2. Add a database: install the **Neon** extension (Netlify DB) on the site, or set
+   `DATABASE_URL` yourself to any PostgreSQL connection string.
+3. Under **Site configuration > Environment variables** add:
+   - `SESSION_SECRET`: a long random string
+   - `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`: the first admin login
+   - `SEED_STAFF_EMAIL` and `SEED_STAFF_PASSWORD` (optional): a first staff login
+4. Trigger a deploy. The build creates the tables and the starting accounts.
+
+On Netlify, receipt images are stored in Netlify Blobs and the site is served over HTTPS,
+so the phone camera works.
 
 ## Notes
 
-- Receipt images are stored in `uploads/` and the database in `prisma/dev.db`. Back up both.
 - The scanner (Tesseract.js) downloads its language data from a CDN the first time it runs,
   so the device needs internet access for scanning.
-- Phone browsers only allow the camera on HTTPS (or localhost), so serve the app over HTTPS
-  when staff use it from their phones.
+- Phone browsers only allow the camera on HTTPS (or localhost).
 - Scanning is a best guess. Faded, handwritten or crumpled receipts may need the price typed in.
 
 ## Stack
 
-Next.js 14 (App Router), Prisma with SQLite, Tailwind CSS, Tesseract.js, ExcelJS, PDFKit.
+Next.js 14 (App Router), Prisma with PostgreSQL, Netlify Blobs, Tailwind CSS, Tesseract.js, ExcelJS, PDFKit.
