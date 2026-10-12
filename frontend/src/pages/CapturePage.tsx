@@ -10,13 +10,31 @@ import { useApi } from '@/lib/useApi'
 const MAX_SIDE = 1800
 
 // Phone photos are huge; shrink them so the scan and the upload stay fast.
+// Decodes through an <img>, which every phone browser supports and which applies the
+// photo's rotation. Older iOS versions cannot createImageBitmap() a camera file.
+function loadImage(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(img)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Could not read image'))
+    }
+    img.src = url
+  })
+}
+
 async function shrinkImage(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file)
-  const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height))
+  const source = await loadImage(file)
+  const scale = Math.min(1, MAX_SIDE / Math.max(source.naturalWidth, source.naturalHeight))
   const canvas = document.createElement('canvas')
-  canvas.width = Math.round(bitmap.width * scale)
-  canvas.height = Math.round(bitmap.height * scale)
-  canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  canvas.width = Math.round(source.naturalWidth * scale)
+  canvas.height = Math.round(source.naturalHeight * scale)
+  canvas.getContext('2d')!.drawImage(source, 0, 0, canvas.width, canvas.height)
   return new Promise((resolve, reject) =>
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Could not read image'))), 'image/jpeg', 0.85),
   )
@@ -57,6 +75,9 @@ export function CapturePage() {
   useEffect(() => () => URL.revokeObjectURL(preview), [preview])
 
   async function handleFile(file: File | undefined) {
+    // clear the pickers so choosing the same photo again still fires a change
+    if (cameraInput.current) cameraInput.current.value = ''
+    if (uploadInput.current) uploadInput.current.value = ''
     if (!file) return
     setError('')
     setDuplicate('')
@@ -125,10 +146,11 @@ export function CapturePage() {
         hidden
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
+      {/* image/* rather than a fixed list, so iPhone HEIC photos can be picked; they are converted to JPEG before upload */}
       <input
         ref={uploadInput}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/*"
         hidden
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
@@ -165,7 +187,7 @@ export function CapturePage() {
       {pickers}
       <div className="card space-y-3">
         <h2 className="card-title">Receipt image</h2>
-        <img src={preview} alt="Receipt" className="mx-auto max-h-[28rem] rounded-lg object-contain" />
+        <img src={preview} alt="Receipt" className="mx-auto max-h-64 rounded-lg object-contain md:max-h-[28rem]" />
         <button
           className="btn-secondary w-full"
           onClick={() => uploadInput.current?.click()}

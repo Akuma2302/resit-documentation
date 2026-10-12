@@ -106,11 +106,36 @@ export function DashboardPage() {
           <section className="card p-0">
             <div className="flex items-center justify-between px-4 pt-4">
               <h2 className="card-title">Recent receipts</h2>
-              <Link to="/admin/receipts" className="link mb-3 text-xs">
+              <Link to="/admin/receipts" className="link tap mb-1 text-xs md:mb-3">
                 View all
               </Link>
             </div>
-            <div className="overflow-x-auto">
+            <ul className="divide-y divide-slate-100 md:hidden">
+              {data.recent.map((r) => (
+                <li key={r.id}>
+                  <Link to={`/admin/receipts/${r.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-slate-50">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-slate-900">
+                        {r.purposeName}
+                        {r.counterparty && <span className="font-normal text-slate-500"> · {r.counterparty}</span>}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {formatDate(r.receiptDate)} · {r.submittedBy}
+                      </p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <StatusBadge status={r.status} />
+                        {r.possibleDuplicate && <DuplicateBadge />}
+                      </div>
+                    </div>
+                    <p className="shrink-0 font-semibold tabular-nums">
+                      {r.direction === 'IN' ? '+' : '-'} {formatRM(r.amountCents)}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+              {data.recent.length === 0 && <li className="px-4 py-3 text-slate-500">No receipts yet.</li>}
+            </ul>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[560px]">
                 <thead>
                   <tr>
@@ -203,7 +228,7 @@ export function DashboardPage() {
             <button className="btn w-full">Apply period</button>
           </form>
 
-          <div className="grid grid-cols-4 gap-2 xl:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2">
             <Link to="/capture" className={tileClass}>
               <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
                 <Icon name="camera" className="h-5 w-5" />

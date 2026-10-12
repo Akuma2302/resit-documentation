@@ -26,7 +26,7 @@ export function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-navy-900 p-4">
+    <main className="flex min-h-dvh items-center justify-center bg-navy-900 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
       <form onSubmit={submit} className="panel w-full max-w-sm">
         <div className="bg-navy-800 px-5 py-4 text-white">
           <h1 className="text-lg font-extrabold tracking-wide">RESIT DOCS</h1>
@@ -41,6 +41,9 @@ export function LoginPage() {
               className="input"
               id="email"
               type="email"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
               autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

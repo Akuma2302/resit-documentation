@@ -12,16 +12,39 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null)
 
+const SKIP_AUTO_LOGIN = 'resit_skip_auto_login'
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(Boolean(getToken()))
+  // the dev server may be able to skip the login page, so it also starts in the loading state
+  const [loading, setLoading] = useState(Boolean(getToken()) || import.meta.env.DEV)
 
   useEffect(() => {
-    if (!getToken()) return
-    api<{ user: User }>('/api/auth/me')
-      .then((res) => setUser(res.user))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false))
+    let cancelled = false
+    async function restore() {
+      if (getToken()) {
+        const res = await api<{ user: User }>('/api/auth/me').catch(() => null)
+        if (res) return res.user
+      }
+      // Development only: the backend logs us in as admin when DEV_AUTO_LOGIN is on.
+      // This branch is removed from production builds.
+      if (import.meta.env.DEV && !sessionStorage.getItem(SKIP_AUTO_LOGIN)) {
+        const res = await api<{ token: string; user: User }>('/api/auth/dev-login', { method: 'POST' }).catch(() => null)
+        if (res) {
+          setToken(res.token)
+          return res.user
+        }
+      }
+      return null
+    }
+    restore().then((restored) => {
+      if (cancelled) return
+      setUser(restored)
+      setLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   // api.ts fires this when the backend rejects the token
@@ -39,6 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const logout = useCallback(() => {
+    // stay logged out until the tab is closed, so the login page can still be seen in development
+    sessionStorage.setItem(SKIP_AUTO_LOGIN, '1')
     setToken(null)
     setUser(null)
   }, [])

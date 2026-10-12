@@ -52,15 +52,15 @@ export function MonthlyChart({ months }: { months: MonthPoint[] }) {
           <button
             key={m.key}
             type="button"
-            className="relative flex h-full flex-1 items-end justify-center gap-0.5 rounded-t hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+            className="relative flex h-full min-w-0 flex-1 items-end justify-center gap-px rounded-t hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
             onMouseEnter={() => setActive(m.key)}
             onMouseLeave={() => setActive(null)}
             onFocus={() => setActive(m.key)}
             onBlur={() => setActive(null)}
             aria-label={`${m.label}: money in ${formatRM(m.inCents)}, money out ${formatRM(m.outCents)}`}
           >
-            <span className="w-1/4 max-w-[18px] rounded-t bg-series-in" style={{ height: height(m.inCents) }} />
-            <span className="w-1/4 max-w-[18px] rounded-t bg-series-out" style={{ height: height(m.outCents) }} />
+            <span className="w-2/5 max-w-[18px] rounded-t bg-series-in" style={{ height: height(m.inCents) }} />
+            <span className="w-2/5 max-w-[18px] rounded-t bg-series-out" style={{ height: height(m.outCents) }} />
             {active === m.key && (
               <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-2 py-1 text-left text-xs text-slate-700 shadow">
                 <span className="block font-medium text-slate-900">{m.label}</span>

@@ -75,6 +75,9 @@ export async function downloadFile(path: string, fallbackName: string) {
   const link = document.createElement('a')
   link.href = url
   link.download = name
+  // the link must be in the page for the click to start a download on iOS and Firefox
+  document.body.appendChild(link)
   link.click()
+  link.remove()
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }

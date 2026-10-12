@@ -187,7 +187,43 @@ export function ReceiptsPage() {
             </Link>
           ))}
         </div>
-        <div className="overflow-x-auto">
+        {/* Phones get a card per receipt; a wide table would need sideways scrolling */}
+        <ul className="divide-y divide-slate-100 md:hidden">
+          {data?.receipts.map((r) => (
+            <li key={r.id} className="px-4 py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-slate-900">{r.purposeName}</p>
+                  <p className="truncate text-xs text-slate-500">
+                    {formatDate(r.receiptDate)} · {directionLabel(r.direction)}
+                    {r.counterparty && ` · ${r.counterparty}`}
+                  </p>
+                  {r.payerName && <p className="text-xs text-slate-500">Paid by {r.payerName}</p>}
+                </div>
+                <p className="shrink-0 font-extrabold tabular-nums">{formatRM(r.amountCents)}</p>
+              </div>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-1">
+                  <StatusBadge status={r.status} />
+                  {r.possibleDuplicate && <DuplicateBadge />}
+                </div>
+                <div className="flex items-center gap-1">
+                  {r.status === 'PENDING' && (
+                    <button type="button" onClick={() => approve(r.id)} className="tap text-sm font-semibold text-green-700">
+                      Approve
+                    </button>
+                  )}
+                  <Link to={`/admin/receipts/${r.id}`} className="link tap">
+                    Open
+                  </Link>
+                </div>
+              </div>
+            </li>
+          ))}
+          {data && data.receipts.length === 0 && <li className="px-4 py-3 text-slate-500">No receipts match these filters.</li>}
+          {!data && !error && <li className="px-4 py-3 text-slate-500">Loading…</li>}
+        </ul>
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[720px]">
             <thead>
               <tr>
@@ -271,7 +307,7 @@ export function ReceiptsPage() {
       {data && data.pages > 1 && (
         <div className="flex items-center justify-between text-sm">
           {data.page > 1 ? (
-            <Link className="link" to={pageLink(data.page - 1)}>
+            <Link className="link tap" to={pageLink(data.page - 1)}>
               Previous
             </Link>
           ) : (
@@ -281,7 +317,7 @@ export function ReceiptsPage() {
             Page {data.page} of {data.pages}
           </span>
           {data.page < data.pages ? (
-            <Link className="link" to={pageLink(data.page + 1)}>
+            <Link className="link tap" to={pageLink(data.page + 1)}>
               Next
             </Link>
           ) : (

@@ -3,8 +3,25 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    /* stop iOS enlarging text when the phone is turned sideways */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     @apply bg-slate-100 text-sm text-slate-800 antialiased;
+    /* no grey flash on tap, and no rubber-band scroll past the page edges */
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  /* removes the double-tap-to-zoom delay on controls */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary {
+    touch-action: manipulation;
   }
 }
 
@@ -29,20 +46,30 @@
   .label {
     @apply mb-1 block text-xs font-semibold text-slate-600;
   }
+  /* 16px text on phones: iOS zooms the page when a focused field uses anything smaller.
+     44px minimum height is the touch target size both iOS and Android recommend. */
   .input {
-    @apply block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600;
+    @apply block min-h-[44px] w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600 md:min-h-0 md:text-sm;
+  }
+  /* iOS draws date fields at their own width and collapses empty ones without this */
+  input[type='date'].input {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type='date'].input::-webkit-date-and-time-value {
+    text-align: left;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-700 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-navy-800 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-700 active:bg-navy-900 disabled:cursor-not-allowed disabled:opacity-50 md:min-h-0;
   }
   .btn-success {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 active:bg-green-900 disabled:cursor-not-allowed disabled:opacity-50 md:min-h-0;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-brand-600 bg-white px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-brand-600 bg-white px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 active:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50 md:min-h-0;
   }
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 active:bg-red-50 disabled:opacity-50 md:min-h-0;
   }
   .th {
     @apply bg-slate-100 px-3 py-2 text-left text-xs font-bold text-slate-700;
@@ -50,17 +77,26 @@
   .td {
     @apply px-3 py-2 text-sm;
   }
-  /* underlined tab strip */
+  /* underlined tab strip. On phones the tabs share the width equally, and scroll sideways
+     rather than wrap if there are too many to fit */
   .tabs {
-    @apply flex flex-wrap gap-x-6 border-b border-slate-200;
+    @apply flex gap-x-1 overflow-x-auto border-b border-slate-200 md:gap-x-6;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
   }
   .tab {
-    @apply -mb-px border-b-2 border-transparent px-1 pb-2 text-sm font-semibold text-slate-600 hover:text-brand-700;
+    @apply -mb-px flex-1 shrink-0 whitespace-nowrap border-b-2 border-transparent px-1 py-2.5 text-center text-[13px] font-semibold text-slate-600 hover:text-brand-700 md:flex-none md:text-sm;
   }
   .tab-active {
     @apply border-brand-600 text-brand-700;
   }
   .link {
     @apply font-semibold text-brand-700 hover:underline;
+  }
+  /* small text actions ("Open", "Turn off") padded out to a finger-sized target on phones */
+  .tap {
+    @apply inline-flex min-h-[44px] items-center px-2 md:min-h-0 md:px-0;
   }
 }

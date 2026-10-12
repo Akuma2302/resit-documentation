@@ -7,7 +7,7 @@ export function PageHeader({ title, crumbs, children }: { title: string; crumbs:
   return (
     <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-xl font-extrabold text-slate-900">{title}</h1>
+        <h1 className="text-lg font-extrabold text-slate-900 sm:text-xl">{title}</h1>
         <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs font-semibold text-slate-500">
           {crumbs.map((crumb, i) => (
             <span key={crumb.label} className="flex items-center gap-2">

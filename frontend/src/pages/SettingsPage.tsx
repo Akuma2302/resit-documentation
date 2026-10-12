@@ -109,7 +109,7 @@ function ResetPasswordForm({ id }: { id: string }) {
     <form onSubmit={submit} className="space-y-1">
       <div className="flex gap-2">
         <input
-          className="input w-44"
+          className="input w-40 sm:w-44"
           name="password"
           type="password"
           placeholder="New password"
@@ -140,7 +140,7 @@ export function SettingsPage() {
       .catch((e: Error) => setToggleError(e.message))
   }
   const Toggle = ({ kind, id, active }: { kind: string; id: string; active: boolean }) => (
-    <button type="button" className="link text-xs" onClick={() => toggle(kind, id, !active)}>
+    <button type="button" className="link tap text-xs" onClick={() => toggle(kind, id, !active)}>
       {active ? 'Turn off' : 'Turn on'}
     </button>
   )
@@ -203,8 +203,9 @@ export function SettingsPage() {
         </div>
         <ul className="divide-y divide-slate-100">
           {data.users.map((u) => (
-            <li key={u.id} className="flex flex-wrap items-center gap-3 py-2 text-sm">
-              <div className="min-w-0 flex-1">
+            <li key={u.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2 text-sm">
+              {/* full width on phones so the name is not squeezed by the password field */}
+              <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
                 <p className={u.active ? '' : off}>{u.name}</p>
                 <p className="truncate text-xs text-slate-500">
                   {u.email} · {u.role === 'ADMIN' ? 'Admin' : 'User'}

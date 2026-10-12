@@ -87,7 +87,7 @@ export function ReceiptDetailPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="card">
           <h2 className="card-title">Receipt image</h2>
-          <AuthImage receiptId={receipt.id} className="mx-auto max-h-[36rem] min-h-[8rem] w-full rounded-lg object-contain" />
+          <AuthImage block receiptId={receipt.id} className="mx-auto max-h-[36rem] min-h-[8rem] w-full rounded-lg object-contain" />
         </div>
 
         <div className="space-y-4">

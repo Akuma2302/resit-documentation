@@ -8,9 +8,11 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "postinstall": "prisma generate",
-    "build": "prisma db push --skip-generate && node prisma/seed.js",
+    "build": "prisma db push --skip-generate && node prisma/seed.js && node prisma/seed-demo.js --if-enabled",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
+    "demo:add": "node prisma/seed-demo.js",
+    "demo:remove": "node prisma/seed-demo.js --remove",
     "setup": "prisma db push && node prisma/seed.js"
   },
   "dependencies": {
