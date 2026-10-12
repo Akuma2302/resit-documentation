@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("USER") // ADMIN | USER
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  submitted    Receipt[] @relation("submitted")
+  reviewed     Receipt[] @relation("reviewed")
+}
+
+// What a receipt is for. Direction decides whether it counts as money in or out.
+model Purpose {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String    @unique
+  direction String // IN | OUT
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  receipts  Receipt[]
+}
+
+// Who paid for an expense: staff, admin, finance and so on.
+model Payer {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String    @unique
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  receipts  Receipt[]
+}
+
+model Receipt {
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  image             ReceiptImage?
+  amountCents       Int
+  receiptDate       DateTime
+  direction         String // IN | OUT, copied from the purpose at save time
+  purposeId         String        @db.ObjectId
+  purpose           Purpose       @relation(fields: [purposeId], references: [id])
+  payerId           String?       @db.ObjectId
+  payer             Payer?        @relation(fields: [payerId], references: [id])
+  // paid to (expense) or received from (sale)
+  counterparty      String        @default("")
+  note              String        @default("")
+  status            String        @default("PENDING") // PENDING | APPROVED | REJECTED
+  possibleDuplicate Boolean       @default(false)
+  submittedById     String        @db.ObjectId
+  submittedBy       User          @relation("submitted", fields: [submittedById], references: [id])
+  reviewedById      String?       @db.ObjectId
+  reviewedBy        User?         @relation("reviewed", fields: [reviewedById], references: [id])
+  reviewedAt        DateTime?
+  createdAt         DateTime      @default(now())
+
+  @@index([status, receiptDate])
+  @@index([submittedById])
+}
+
+// The photo is kept in the database so the server needs no disk of its own.
+// It sits in its own collection so listing receipts never loads image bytes.
+model ReceiptImage {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  receiptId   String  @unique @db.ObjectId
+  receipt     Receipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  contentType String
+  data        Bytes
+}

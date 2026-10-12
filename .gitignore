@@ -1,10 +1,6 @@
 node_modules/
-.next/
-next-env.d.ts
+dist/
 *.tsbuildinfo
 
-# local config and data
+# local config
 .env
-prisma/*.db
-prisma/*.db-journal
-uploads/
