@@ -1,4 +1,5 @@
 import { toggleActive } from '@/app/actions'
+import { PageHeader } from '@/components/PageHeader'
 import { AddPayerForm, AddPurposeForm, AddUserForm, ResetPasswordForm } from '@/components/SettingsForms'
 import { requireAdmin } from '@/lib/auth'
 import { db } from '@/lib/db'
@@ -11,7 +12,7 @@ function Toggle({ kind, id, active }: { kind: string; id: number; active: boolea
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="active" value={String(!active)} />
-      <button className="text-sm underline">{active ? 'Turn off' : 'Turn on'}</button>
+      <button className="link text-xs">{active ? 'Turn off' : 'Turn on'}</button>
     </form>
   )
 }
@@ -27,12 +28,12 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Settings</h1>
+      <PageHeader title="Settings" crumbs={[{ label: 'Dashboard', href: '/admin' }, { label: 'Settings' }]} />
 
       <div className="grid gap-4 md:grid-cols-2">
         <section className="card space-y-3">
           <div>
-            <h2 className="font-medium">Purposes</h2>
+            <h2 className="card-title mb-1">Purposes</h2>
             <p className="text-sm text-slate-500">What a receipt can be for. Shown in the camera form.</p>
           </div>
           <ul className="divide-y divide-slate-100">
@@ -49,7 +50,7 @@ export default async function SettingsPage() {
 
         <section className="card space-y-3">
           <div>
-            <h2 className="font-medium">Who paid</h2>
+            <h2 className="card-title mb-1">Who paid</h2>
             <p className="text-sm text-slate-500">The choices in the &quot;Who paid&quot; dropdown for expenses.</p>
           </div>
           <ul className="divide-y divide-slate-100">
@@ -66,7 +67,7 @@ export default async function SettingsPage() {
 
       <section className="card space-y-3">
         <div>
-          <h2 className="font-medium">Users</h2>
+          <h2 className="card-title mb-1">Users</h2>
           <p className="text-sm text-slate-500">Each person logs in with their own account.</p>
         </div>
         <ul className="divide-y divide-slate-100">

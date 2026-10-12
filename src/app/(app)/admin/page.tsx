@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { BarList, MonthlyChart, type MonthPoint } from '@/components/Charts'
+import { Icon } from '@/components/Icon'
+import { PageHeader } from '@/components/PageHeader'
 import { DuplicateBadge, StatusBadge } from '@/components/StatusBadge'
 import { requireAdmin } from '@/lib/auth'
 import { db } from '@/lib/db'
@@ -97,123 +99,195 @@ export default async function DashboardPage({ searchParams }: Props) {
     else month.outCents += r.amountCents
   }
 
-  const tiles = [
-    { label: 'Money in', value: formatRM(totalIn) },
-    { label: 'Money out', value: formatRM(totalOut) },
-    { label: 'Balance', value: formatRM(totalIn - totalOut) },
+  const balance = totalIn - totalOut
+  const periodLabel = PERIODS.find((p) => p.value === period)?.label ?? 'Custom range'
+  const overview = [
+    { label: 'Total money in', value: formatRM(totalIn), tone: 'text-green-700' },
+    { label: 'Total money out', value: formatRM(totalOut), tone: 'text-slate-900' },
+    { label: 'Approved receipts', value: String(approvedCount), tone: 'text-slate-900' },
+    { label: 'Pending approval', value: String(pending._count), tone: 'text-brand-700' },
+  ]
+  const quickActions = [
+    { href: '/capture', label: 'Snap Receipt', icon: 'camera', tone: 'bg-brand-50 text-brand-700' },
+    { href: '/admin/receipts?status=PENDING', label: 'Review Pending', icon: 'check', tone: 'bg-amber-50 text-amber-700' },
+    { href: '/api/admin/export?format=xlsx', label: 'Export Excel', icon: 'excel', tone: 'bg-green-50 text-green-700' },
+    { href: '/api/admin/export?format=pdf', label: 'Export PDF', icon: 'pdf', tone: 'bg-purple-50 text-purple-700' },
   ]
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Dashboard</h1>
-        <div className="inline-flex flex-wrap rounded-lg border border-slate-300 bg-white p-0.5 text-sm">
-          {PERIODS.map((p) => (
-            <Link
-              key={p.value}
-              href={`/admin?period=${p.value}`}
-              className={`rounded-md px-3 py-1.5 ${
-                period === p.value ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              {p.label}
-            </Link>
-          ))}
-        </div>
-      </div>
+    <div>
+      <PageHeader title="Dashboard" crumbs={[{ label: 'Dashboard' }]} />
 
-      <form method="get" className="flex flex-wrap items-end gap-2 text-sm">
-        <input type="hidden" name="period" value="custom" />
-        <div>
-          <label className="label" htmlFor="from">
-            Custom from
-          </label>
-          <input
-            className="input"
-            id="from"
-            name="from"
-            type="date"
-            defaultValue={period === 'custom' ? searchParams.from : ''}
-          />
-        </div>
-        <div>
-          <label className="label" htmlFor="to">
-            To
-          </label>
-          <input className="input" id="to" name="to" type="date" defaultValue={period === 'custom' ? searchParams.to : ''} />
-        </div>
-        <button className="btn-secondary">Apply</button>
-      </form>
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        {tiles.map((tile) => (
-          <div key={tile.label} className="card">
-            <p className="text-sm text-slate-500">{tile.label}</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums">{tile.value}</p>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="card">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Money in</p>
+              <p className="mt-2 text-2xl font-extrabold tabular-nums text-green-700">{formatRM(totalIn)}</p>
+            </div>
+            <div className="card">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Money out</p>
+              <p className="mt-2 text-2xl font-extrabold tabular-nums text-slate-900">{formatRM(totalOut)}</p>
+            </div>
+            <div className="card text-center">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-700">Balance</p>
+              <p className="mt-2 text-2xl font-extrabold tabular-nums text-purple-700">{formatRM(balance)}</p>
+            </div>
           </div>
-        ))}
-      </div>
-      <p className="text-sm text-slate-600">
-        Totals count the {approvedCount} approved receipt{approvedCount === 1 ? '' : 's'} in this period.{' '}
-        {pending._count > 0 && (
-          <Link href="/admin/receipts?status=PENDING" className="font-medium underline">
-            {pending._count} pending ({formatRM(pending._sum.amountCents ?? 0)}) waiting for approval
-          </Link>
-        )}
-      </p>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <section className="card">
-          <h2 className="mb-3 font-medium">Spending by purpose</h2>
-          <BarList items={purposeBars} empty="No approved spending in this period." />
-        </section>
-        <section className="card">
-          <h2 className="mb-3 font-medium">Spending by who paid</h2>
-          <BarList items={payerBars} empty="No approved spending in this period." />
-        </section>
-      </div>
-
-      <section className="card">
-        <h2 className="mb-3 font-medium">Month by month, last 12 months</h2>
-        <MonthlyChart months={months} />
-      </section>
-
-      <section className="card">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-medium">Recent receipts</h2>
-          <Link href="/admin/receipts" className="text-sm underline">
-            View all
-          </Link>
-        </div>
-        {recent.length === 0 ? (
-          <p className="text-sm text-slate-500">No receipts yet.</p>
-        ) : (
-          <ul className="divide-y divide-slate-100">
-            {recent.map((r) => (
-              <li key={r.id}>
-                <Link href={`/admin/receipts/${r.id}`} className="flex items-center gap-3 py-2 hover:bg-slate-50">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm">
-                      {r.purpose.name}
-                      {r.counterparty && <span className="text-slate-500"> · {r.counterparty}</span>}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {formatDate(r.receiptDate)} · {r.submittedBy.name}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap justify-end gap-1">
-                    {r.possibleDuplicate && <DuplicateBadge />}
-                    <StatusBadge status={r.status} />
-                  </div>
-                  <p className="w-28 shrink-0 text-right text-sm font-medium tabular-nums">
-                    {r.direction === 'IN' ? '+' : '-'} {formatRM(r.amountCents)}
-                  </p>
+          <div className="card">
+            <div className="tabs mb-4">
+              {PERIODS.map((p) => (
+                <Link
+                  key={p.value}
+                  href={`/admin?period=${p.value}`}
+                  className={`tab ${period === p.value ? 'tab-active' : ''}`}
+                >
+                  {p.label}
                 </Link>
-              </li>
+              ))}
+              {period === 'custom' && <span className="tab tab-active">Custom range</span>}
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <section>
+                <h2 className="card-title">Spending by purpose</h2>
+                <BarList items={purposeBars} empty="No approved spending in this period." />
+              </section>
+              <section>
+                <h2 className="card-title">Spending by who paid</h2>
+                <BarList items={payerBars} empty="No approved spending in this period." />
+              </section>
+            </div>
+          </div>
+
+          <section className="card">
+            <h2 className="card-title">Month by month, last 12 months</h2>
+            <MonthlyChart months={months} />
+          </section>
+
+          <section className="card p-0">
+            <div className="flex items-center justify-between px-4 pt-4">
+              <h2 className="card-title">Recent receipts</h2>
+              <Link href="/admin/receipts" className="link mb-3 text-xs">
+                View all
+              </Link>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px]">
+                <thead>
+                  <tr>
+                    <th className="th">Date</th>
+                    <th className="th">Purpose</th>
+                    <th className="th">Paid to / from</th>
+                    <th className="th">Submitted by</th>
+                    <th className="th">Status</th>
+                    <th className="th text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {recent.map((r) => (
+                    <tr key={r.id} className="hover:bg-slate-50">
+                      <td className="td whitespace-nowrap">
+                        <Link href={`/admin/receipts/${r.id}`} className="link">
+                          {formatDate(r.receiptDate)}
+                        </Link>
+                      </td>
+                      <td className="td font-semibold">{r.purpose.name}</td>
+                      <td className="td">{r.counterparty || '—'}</td>
+                      <td className="td">{r.submittedBy.name}</td>
+                      <td className="td">
+                        <div className="flex flex-wrap gap-1">
+                          <StatusBadge status={r.status} />
+                          {r.possibleDuplicate && <DuplicateBadge />}
+                        </div>
+                      </td>
+                      <td className="td whitespace-nowrap text-right font-semibold tabular-nums">
+                        {r.direction === 'IN' ? '+' : '-'} {formatRM(r.amountCents)}
+                      </td>
+                    </tr>
+                  ))}
+                  {recent.length === 0 && (
+                    <tr>
+                      <td className="td text-slate-500" colSpan={6}>
+                        No receipts yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <aside className="space-y-4">
+          <div className="panel">
+            <h2 className="panel-head">Overview · {periodLabel}</h2>
+            <dl className="panel-body space-y-2.5">
+              {overview.map((row) => (
+                <div key={row.label} className="flex justify-between gap-3">
+                  <dt className="font-semibold text-slate-700">{row.label}</dt>
+                  <dd className={`font-semibold tabular-nums ${row.tone}`}>{row.value}</dd>
+                </div>
+              ))}
+              <div className="flex justify-between gap-3 border-t border-slate-200 pt-3">
+                <dt className="font-extrabold text-slate-900">Balance</dt>
+                <dd className="text-base font-extrabold tabular-nums text-purple-700">{formatRM(balance)}</dd>
+              </div>
+            </dl>
+            <p className="px-4 pb-4 text-xs text-slate-500">
+              Only approved receipts count.
+              {pending._count > 0 && <> {formatRM(pending._sum.amountCents ?? 0)} is still pending.</>}
+            </p>
+          </div>
+
+          <form method="get" className="card space-y-3">
+            <h2 className="card-title">Custom period</h2>
+            <input type="hidden" name="period" value="custom" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label" htmlFor="from">
+                  From
+                </label>
+                <input
+                  className="input"
+                  id="from"
+                  name="from"
+                  type="date"
+                  defaultValue={period === 'custom' ? searchParams.from : ''}
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="to">
+                  To
+                </label>
+                <input
+                  className="input"
+                  id="to"
+                  name="to"
+                  type="date"
+                  defaultValue={period === 'custom' ? searchParams.to : ''}
+                />
+              </div>
+            </div>
+            <button className="btn w-full">Apply period</button>
+          </form>
+
+          <div className="grid grid-cols-4 gap-2 xl:grid-cols-2">
+            {quickActions.map((action) => (
+              <a
+                key={action.label}
+                href={action.href}
+                className="card flex flex-col items-center gap-2 px-2 py-3 text-center text-xs font-semibold text-slate-700 hover:border-brand-600"
+              >
+                <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${action.tone}`}>
+                  <Icon name={action.icon} className="h-5 w-5" />
+                </span>
+                {action.label}
+              </a>
             ))}
-          </ul>
-        )}
-      </section>
+          </div>
+        </aside>
+      </div>
     </div>
   )
 }

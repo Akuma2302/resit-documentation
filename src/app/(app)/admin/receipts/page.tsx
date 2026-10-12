@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { reviewReceipt } from '@/app/actions'
+import { Icon } from '@/components/Icon'
+import { PageHeader } from '@/components/PageHeader'
 import { DuplicateBadge, StatusBadge } from '@/components/StatusBadge'
 import { requireAdmin } from '@/lib/auth'
 import { db } from '@/lib/db'
@@ -50,33 +52,18 @@ export default async function ReceiptsPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Receipts documented</h1>
-        <div className="flex gap-2">
-          <a className="btn-secondary" href={`/api/admin/export?format=xlsx&${query}`}>
-            Export Excel
-          </a>
-          <a className="btn-secondary" href={`/api/admin/export?format=pdf&${query}`}>
-            Export PDF
-          </a>
-        </div>
-      </div>
+      <PageHeader title="Receipts Documented" crumbs={[{ label: 'Dashboard', href: '/admin' }, { label: 'Receipts' }]}>
+        <a className="btn-secondary" href={`/api/admin/export?format=xlsx&${query}`}>
+          <Icon name="excel" />
+          Export Excel
+        </a>
+        <a className="btn-secondary" href={`/api/admin/export?format=pdf&${query}`}>
+          <Icon name="pdf" />
+          Export PDF
+        </a>
+      </PageHeader>
 
-      <div className="inline-flex rounded-lg border border-slate-300 bg-white p-0.5 text-sm">
-        {tabs.map((t) => (
-          <Link
-            key={t.value}
-            href={tab(t.value)}
-            className={`rounded-md px-4 py-1.5 ${
-              (filters.direction ?? '') === t.value ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
-            }`}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </div>
-
-      <form className="card grid grid-cols-2 gap-3 md:grid-cols-6" method="get">
+      <form className="card grid grid-cols-2 gap-3 lg:grid-cols-6" method="get">
         {filters.direction && <input type="hidden" name="direction" value={filters.direction} />}
         <div>
           <label className="label" htmlFor="status">
@@ -128,13 +115,21 @@ export default async function ReceiptsPage({ searchParams }: Props) {
         </div>
       </form>
 
-      <p className="text-sm text-slate-600">
-        {count} receipt{count === 1 ? '' : 's'} · Money in {formatRM(totalIn)} · Money out {formatRM(totalOut)}
-      </p>
-
-      <div className="card overflow-x-auto p-0">
+      <div className="card p-0">
+        <div className="tabs px-4 pt-3">
+          {tabs.map((t) => (
+            <Link
+              key={t.value}
+              href={tab(t.value)}
+              className={`tab ${(filters.direction ?? '') === t.value ? 'tab-active' : ''}`}
+            >
+              {t.label}
+            </Link>
+          ))}
+        </div>
+        <div className="overflow-x-auto">
         <table className="w-full min-w-[720px]">
-          <thead className="border-b border-slate-200">
+          <thead>
             <tr>
               <th className="th">Date</th>
               <th className="th">Type</th>
@@ -166,12 +161,12 @@ export default async function ReceiptsPage({ searchParams }: Props) {
                     {r.status === 'PENDING' && (
                       <form action={reviewReceipt}>
                         <input type="hidden" name="id" value={r.id} />
-                        <button name="status" value="APPROVED" className="text-sm font-medium text-green-700 underline">
+                        <button name="status" value="APPROVED" className="text-sm font-semibold text-green-700 hover:underline">
                           Approve
                         </button>
                       </form>
                     )}
-                    <Link href={`/admin/receipts/${r.id}`} className="text-sm underline">
+                    <Link href={`/admin/receipts/${r.id}`} className="link">
                       Open
                     </Link>
                   </div>
@@ -187,12 +182,26 @@ export default async function ReceiptsPage({ searchParams }: Props) {
             )}
           </tbody>
         </table>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-t border-slate-200 px-4 py-3">
+          <span className="text-xs font-semibold text-slate-500">
+            {count} receipt{count === 1 ? '' : 's'}
+          </span>
+          <span className="flex flex-wrap gap-x-6 text-sm font-extrabold">
+            <span className="text-green-700">
+              TOTAL IN <span className="ml-2 tabular-nums">{formatRM(totalIn)}</span>
+            </span>
+            <span className="text-brand-700">
+              TOTAL OUT <span className="ml-2 tabular-nums">{formatRM(totalOut)}</span>
+            </span>
+          </span>
+        </div>
       </div>
 
       {pages > 1 && (
         <div className="flex items-center justify-between text-sm">
           {page > 1 ? (
-            <Link className="underline" href={pageLink(page - 1)}>
+            <Link className="link" href={pageLink(page - 1)}>
               Previous
             </Link>
           ) : (
@@ -202,7 +211,7 @@ export default async function ReceiptsPage({ searchParams }: Props) {
             Page {page} of {pages}
           </span>
           {page < pages ? (
-            <Link className="underline" href={pageLink(page + 1)}>
+            <Link className="link" href={pageLink(page + 1)}>
               Next
             </Link>
           ) : (

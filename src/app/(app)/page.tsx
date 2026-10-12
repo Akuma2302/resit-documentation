@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { Icon } from '@/components/Icon'
+import { PageHeader } from '@/components/PageHeader'
 import { DuplicateBadge, StatusBadge } from '@/components/StatusBadge'
 import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
@@ -17,12 +19,12 @@ export default async function MyReceiptsPage({ searchParams }: { searchParams: {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">My receipts</h1>
+      <PageHeader title="My Receipts" crumbs={[{ label: 'My Receipts' }]}>
         <Link href="/capture" className="btn">
+          <Icon name="camera" />
           Snap a receipt
         </Link>
-      </div>
+      </PageHeader>
 
       {searchParams.saved && (
         <p className="rounded-lg bg-green-100 px-3 py-2 text-sm text-green-800">
@@ -46,7 +48,7 @@ export default async function MyReceiptsPage({ searchParams }: { searchParams: {
                 />
               </a>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">
+                <p className="truncate text-sm font-semibold">
                   {r.purpose.name}
                   {r.counterparty && <span className="font-normal text-slate-500"> · {r.counterparty}</span>}
                 </p>
@@ -56,7 +58,7 @@ export default async function MyReceiptsPage({ searchParams }: { searchParams: {
                   {r.possibleDuplicate && <DuplicateBadge />}
                 </div>
               </div>
-              <p className="shrink-0 text-sm font-semibold tabular-nums">
+              <p className="shrink-0 text-sm font-extrabold tabular-nums">
                 {r.direction === 'IN' ? '+' : '-'} {formatRM(r.amountCents)}
               </p>
             </li>

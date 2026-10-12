@@ -1,7 +1,7 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { reviewReceipt } from '@/app/actions'
 import { EditReceiptForm } from '@/components/EditReceiptForm'
+import { PageHeader } from '@/components/PageHeader'
 import { DuplicateBadge, StatusBadge } from '@/components/StatusBadge'
 import { requireAdmin } from '@/lib/auth'
 import { db } from '@/lib/db'
@@ -25,14 +25,17 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
 
   return (
     <div className="space-y-4">
-      <Link href="/admin/receipts" className="text-sm underline">
-        Back to receipts
-      </Link>
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-semibold">Receipt #{receipt.id}</h1>
+      <PageHeader
+        title="Receipt Update"
+        crumbs={[
+          { label: 'Dashboard', href: '/admin' },
+          { label: 'Receipts', href: '/admin/receipts' },
+          { label: `Receipt #${receipt.id}` },
+        ]}
+      >
         <StatusBadge status={receipt.status} />
         {receipt.possibleDuplicate && <DuplicateBadge />}
-      </div>
+      </PageHeader>
       <p className="text-sm text-slate-600">
         Submitted by {receipt.submittedBy.name} on {formatDate(receipt.createdAt)}
         {receipt.reviewedBy && receipt.reviewedAt && (
@@ -46,6 +49,7 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="card">
+          <h2 className="card-title">Receipt image</h2>
           <a href={`/api/receipts/${receipt.id}/image`} target="_blank">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -57,10 +61,12 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
         </div>
 
         <div className="space-y-4">
-          <form action={reviewReceipt} className="card flex flex-wrap items-center gap-2">
+          <form action={reviewReceipt} className="panel">
+            <h2 className="panel-head">Approval</h2>
+            <div className="panel-body flex flex-wrap items-center gap-2">
             <input type="hidden" name="id" value={receipt.id} />
             {receipt.status !== 'APPROVED' && (
-              <button name="status" value="APPROVED" className="btn">
+              <button name="status" value="APPROVED" className="btn-success">
                 Approve
               </button>
             )}
@@ -75,9 +81,11 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
               </button>
             )}
             <p className="w-full text-xs text-slate-500">Only approved receipts count in the dashboard totals.</p>
+            </div>
           </form>
 
           <div className="card">
+            <h2 className="card-title">Receipt details</h2>
             <EditReceiptForm
               id={receipt.id}
               purposes={purposes}

@@ -46,7 +46,7 @@ export function MonthlyChart({ months }: { months: MonthPoint[] }) {
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm bg-series-out" /> Money out
         </span>
-        <span className="ml-auto text-slate-400">Scale max {formatRM(max)}</span>
+        {max > 1 && <span className="ml-auto text-slate-400">Scale max {formatRM(max)}</span>}
       </div>
 
       <div className="flex items-end border-b border-slate-300" style={{ height: PLOT_HEIGHT }}>

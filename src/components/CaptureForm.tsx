@@ -139,8 +139,9 @@ export function CaptureForm({ purposes, payers }: Props) {
 
   if (!image) {
     return (
-      <div className="card space-y-3 text-center">
+      <div className="card mx-auto max-w-xl space-y-4 py-10 text-center">
         {pickers}
+        <h2 className="card-title mb-0">Scan a receipt</h2>
         <p className="text-sm text-slate-600">Take a photo of the receipt or upload one from your device.</p>
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
           <button className="btn" onClick={() => cameraInput.current?.click()} disabled={scanning}>
@@ -160,6 +161,7 @@ export function CaptureForm({ purposes, payers }: Props) {
     <div className="grid gap-4 md:grid-cols-2">
       {pickers}
       <div className="card space-y-3">
+        <h2 className="card-title">Receipt image</h2>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={preview} alt="Receipt" className="mx-auto max-h-[28rem] rounded-lg object-contain" />
         <button
@@ -172,18 +174,20 @@ export function CaptureForm({ purposes, payers }: Props) {
       </div>
 
       <form
-        className="card space-y-4"
+        className="panel"
         onSubmit={(e) => {
           e.preventDefault()
           save(false)
         }}
       >
+        <h2 className="panel-head">Receipt details</h2>
+        <div className="panel-body space-y-4">
         {scanning ? (
-          <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">
+          <p className="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-700">
             Scanning receipt… {progress > 0 ? `${progress}%` : ''}
           </p>
         ) : (
-          scanNote && <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-700">{scanNote}</p>
+          scanNote && <p className="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-700">{scanNote}</p>
         )}
 
         <ReceiptFields purposes={purposes} payers={payers} values={values} onChange={setValues} />
@@ -203,10 +207,11 @@ export function CaptureForm({ purposes, payers }: Props) {
             </div>
           </div>
         ) : (
-          <button className="btn w-full" disabled={scanning || saving}>
+          <button className="btn-success w-full" disabled={scanning || saving}>
             {saving ? 'Saving…' : 'Save receipt'}
           </button>
         )}
+        </div>
       </form>
     </div>
   )
