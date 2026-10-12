@@ -18,6 +18,12 @@ export function formatDay(timestamp: string) {
   return new Date(timestamp).toLocaleDateString('en-MY', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+// "Staff (Ali)" when a staff member's name was recorded, otherwise just the payer
+export function payerLabel(r: { payerName: string | null; paidByName: string }) {
+  if (!r.payerName) return ''
+  return r.paidByName ? `${r.payerName} (${r.paidByName})` : r.payerName
+}
+
 export const directionLabel = (direction: string) => (direction === 'IN' ? 'Sale' : 'Buy')
 
 export const statusLabel: Record<string, string> = {

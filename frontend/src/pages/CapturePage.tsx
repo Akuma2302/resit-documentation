@@ -65,6 +65,7 @@ export function CapturePage() {
     date: today(),
     purposeId: '',
     payerId: '',
+    paidByName: '',
     counterparty: '',
     note: '',
   })

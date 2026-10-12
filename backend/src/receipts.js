@@ -2,6 +2,9 @@ const db = require('./db')
 const { parseAmountToCents, parseDateInput } = require('./format')
 const { isId, toId } = require('./ids')
 
+// A payer called "Staff" covers many people, so the receipt also records which one.
+const needsPersonName = (payer) => /staff/i.test(payer.name)
+
 // Validates the fields shared by the capture form and the admin edit form.
 // Returns { data } or { error }.
 async function parseReceiptFields(body) {
@@ -15,10 +18,15 @@ async function parseReceiptFields(body) {
   if (!purpose) return { error: 'Choose what the receipt is for.' }
 
   let payerId = null
+  let paidByName = null
   if (purpose.direction === 'OUT') {
     const payer = await db.payer.findUnique({ where: { id: toId(body.payerId) } })
     if (!payer) return { error: 'Choose who paid.' }
     payerId = payer.id
+    if (needsPersonName(payer)) {
+      paidByName = String(body.paidByName ?? '').trim().slice(0, 80)
+      if (!paidByName) return { error: 'Enter the name of the staff member who paid.' }
+    }
   }
 
   return {
@@ -28,6 +36,7 @@ async function parseReceiptFields(body) {
       direction: purpose.direction,
       purposeId: purpose.id,
       payerId,
+      paidByName,
       counterparty: String(body.counterparty ?? '').trim().slice(0, 120),
       note: String(body.note ?? '').trim().slice(0, 1000),
     },
@@ -68,6 +77,7 @@ function toReceiptJson(r) {
     purposeName: r.purpose.name,
     payerId: r.payerId,
     payerName: r.payer ? r.payer.name : null,
+    paidByName: r.paidByName ?? '',
     counterparty: r.counterparty,
     note: r.note,
     status: r.status,

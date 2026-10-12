@@ -5,6 +5,7 @@ export type ReceiptValues = {
   date: string
   purposeId: string
   payerId: string
+  paidByName: string
   counterparty: string
   note: string
 }
@@ -21,6 +22,9 @@ export function ReceiptFields({ purposes, payers, values, onChange }: Props) {
   const set = (patch: Partial<ReceiptValues>) => onChange({ ...values, ...patch })
   const purpose = purposes.find((p) => String(p.id) === values.purposeId)
   const isExpense = purpose?.direction === 'OUT'
+  // "Staff" covers many people, so ask which one (the backend applies the same rule)
+  const payer = payers.find((p) => String(p.id) === values.payerId)
+  const askStaffName = isExpense && payer !== undefined && /staff/i.test(payer.name)
 
   return (
     <div className="space-y-4">
@@ -106,6 +110,26 @@ export function ReceiptFields({ purposes, payers, values, onChange }: Props) {
               </option>
             ))}
           </select>
+        </div>
+      )}
+
+      {askStaffName && (
+        <div>
+          <label className="label" htmlFor="paidByName">
+            Staff name
+          </label>
+          <input
+            className="input"
+            id="paidByName"
+            name="paidByName"
+            placeholder="Who paid for this"
+            autoComplete="name"
+            autoCapitalize="words"
+            value={values.paidByName}
+            onChange={(e) => set({ paidByName: e.target.value })}
+            maxLength={80}
+            required
+          />
         </div>
       )}
 

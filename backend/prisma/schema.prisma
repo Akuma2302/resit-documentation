@@ -48,6 +48,8 @@ model Receipt {
   purpose           Purpose       @relation(fields: [purposeId], references: [id])
   payerId           String?       @db.ObjectId
   payer             Payer?        @relation(fields: [payerId], references: [id])
+  // which staff member paid, when the payer is "Staff". Optional so older receipts stay valid
+  paidByName        String?
   // paid to (expense) or received from (sale)
   counterparty      String        @default("")
   note              String        @default("")

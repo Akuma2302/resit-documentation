@@ -12,6 +12,8 @@ export type Receipt = {
   purposeName: string
   payerId: string | null
   payerName: string | null
+  // the staff member who paid, when the payer is "Staff"; otherwise empty
+  paidByName: string
   counterparty: string
   note: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'

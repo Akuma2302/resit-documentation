@@ -16,6 +16,7 @@ const toValues = (r: Receipt): ReceiptValues => ({
   date: r.receiptDate,
   purposeId: r.purposeId,
   payerId: r.payerId ?? '',
+  paidByName: r.paidByName,
   counterparty: r.counterparty,
   note: r.note,
 })

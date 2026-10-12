@@ -4,7 +4,7 @@ import { Icon } from '@/components/Icon'
 import { PageHeader } from '@/components/PageHeader'
 import { DuplicateBadge, StatusBadge } from '@/components/StatusBadge'
 import { api, downloadFile } from '@/lib/api'
-import { directionLabel, formatDate, formatRM } from '@/lib/format'
+import { directionLabel, formatDate, formatRM, payerLabel } from '@/lib/format'
 import type { PurposeOption, Receipt } from '@/lib/types'
 import { useApi } from '@/lib/useApi'
 
@@ -198,7 +198,7 @@ export function ReceiptsPage() {
                     {formatDate(r.receiptDate)} · {directionLabel(r.direction)}
                     {r.counterparty && ` · ${r.counterparty}`}
                   </p>
-                  {r.payerName && <p className="text-xs text-slate-500">Paid by {r.payerName}</p>}
+                  {r.payerName && <p className="truncate text-xs text-slate-500">Paid by {payerLabel(r)}</p>}
                 </div>
                 <p className="shrink-0 font-extrabold tabular-nums">{formatRM(r.amountCents)}</p>
               </div>
@@ -244,7 +244,7 @@ export function ReceiptsPage() {
                   <td className="td">{directionLabel(r.direction)}</td>
                   <td className="td">{r.purposeName}</td>
                   <td className="td">{r.counterparty || '—'}</td>
-                  <td className="td">{r.payerName ?? '—'}</td>
+                  <td className="td">{payerLabel(r) || '—'}</td>
                   <td className="td whitespace-nowrap text-right tabular-nums">{formatRM(r.amountCents)}</td>
                   <td className="td">
                     <div className="flex flex-wrap gap-1">
@@ -288,19 +288,20 @@ export function ReceiptsPage() {
           </table>
         </div>
         {data && (
-          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-t border-slate-200 px-4 py-3">
-            <span className="text-xs font-semibold text-slate-500">
-              {data.count} receipt{data.count === 1 ? '' : 's'}
-            </span>
-            <span className="flex flex-wrap gap-x-6 text-sm font-extrabold">
-              <span className="text-green-700">
-                TOTAL IN <span className="ml-2 tabular-nums">{formatRM(data.totalIn)}</span>
-              </span>
-              <span className="text-brand-700">
-                TOTAL OUT <span className="ml-2 tabular-nums">{formatRM(data.totalOut)}</span>
-              </span>
-            </span>
-          </div>
+          <dl className="grid grid-cols-3 divide-x divide-slate-200 rounded-b-lg border-t border-slate-200 bg-slate-50 text-center">
+            <div className="px-2 py-3">
+              <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Receipts</dt>
+              <dd className="mt-0.5 text-sm font-extrabold tabular-nums text-slate-900 sm:text-base">{data.count}</dd>
+            </div>
+            <div className="px-2 py-3">
+              <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Total in</dt>
+              <dd className="mt-0.5 text-sm font-extrabold tabular-nums text-green-700 sm:text-base">{formatRM(data.totalIn)}</dd>
+            </div>
+            <div className="px-2 py-3">
+              <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Total out</dt>
+              <dd className="mt-0.5 text-sm font-extrabold tabular-nums text-slate-900 sm:text-base">{formatRM(data.totalOut)}</dd>
+            </div>
+          </dl>
         )}
       </div>
 

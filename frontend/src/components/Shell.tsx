@@ -105,7 +105,7 @@ export function Shell() {
         </div>
       </aside>
 
-      <div className="flex min-h-dvh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[calc(3rem+env(safe-area-inset-top))] md:pb-0 md:pl-52">
+      <div className="flex min-h-dvh flex-col pb-[calc(5.5rem+env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[calc(3rem+env(safe-area-inset-top))] md:pb-0 md:pl-52">
         <main className="flex-1 p-3 sm:p-4">
           <Outlet />
         </main>
@@ -120,6 +120,28 @@ export function Shell() {
       >
         {links.map((link) => {
           const active = isActive(pathname, link.href)
+          // Snapping a receipt is the main action, so Camera is a raised round button
+          if (link.href === '/capture') {
+            return (
+              <Link
+                key={link.href}
+                to={link.href}
+                aria-current={active ? 'page' : undefined}
+                className={`flex h-16 min-w-0 flex-1 flex-col items-center justify-end gap-1 pb-2 text-[11px] font-bold ${
+                  active ? 'text-white' : 'text-slate-200'
+                }`}
+              >
+                <span
+                  className={`-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg ring-4 ring-navy-800 transition-transform active:scale-95 ${
+                    active ? 'outline outline-2 outline-white/70' : ''
+                  }`}
+                >
+                  <Icon name={link.icon} className="h-7 w-7" />
+                </span>
+                <span className="max-w-full truncate px-1">{link.label}</span>
+              </Link>
+            )
+          }
           return (
             <Link
               key={link.href}
