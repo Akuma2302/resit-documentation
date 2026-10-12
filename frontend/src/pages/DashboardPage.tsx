@@ -63,16 +63,16 @@ export function DashboardPage() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="min-w-0 space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="card">
+            <div className="card text-center">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Money in</p>
               <p className="mt-2 text-2xl font-extrabold tabular-nums text-green-700">{formatRM(data.totalIn)}</p>
             </div>
-            <div className="card">
+            <div className="card text-center">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Money out</p>
               <p className="mt-2 text-2xl font-extrabold tabular-nums text-slate-900">{formatRM(data.totalOut)}</p>
             </div>
             <div className="card text-center">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-700">Balance</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Balance</p>
               <p className="mt-2 text-2xl font-extrabold tabular-nums text-purple-700">{formatRM(balance)}</p>
             </div>
           </div>
