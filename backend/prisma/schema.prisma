@@ -50,6 +50,10 @@ model Receipt {
   payer             Payer?        @relation(fields: [payerId], references: [id])
   // which staff member paid, when the payer is "Staff". Optional so older receipts stay valid
   paidByName        String?
+  // which account an expense was paid from: COMPANY | PERSONAL. Optional for older receipts
+  paidFromAccount   String?
+  // whose account it was, when paid from a personal account
+  accountHolder     String?
   // paid to (expense) or received from (sale)
   counterparty      String        @default("")
   note              String        @default("")

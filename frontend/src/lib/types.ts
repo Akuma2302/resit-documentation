@@ -14,6 +14,10 @@ export type Receipt = {
   payerName: string | null
   // the staff member who paid, when the payer is "Staff"; otherwise empty
   paidByName: string
+  // which account an expense was paid from; empty on sales and on older receipts
+  paidFromAccount: 'COMPANY' | 'PERSONAL' | ''
+  // whose account, when paid from a personal one
+  accountHolder: string
   counterparty: string
   note: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'

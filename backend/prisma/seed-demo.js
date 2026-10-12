@@ -124,6 +124,7 @@ async function add() {
         direction: purpose.direction,
         purposeId: purpose.id,
         payerId: payer ? payer.id : null,
+        paidFromAccount: purpose.direction === 'OUT' ? 'COMPANY' : null,
         counterparty,
         note: `${DEMO_TAG} ${note}`,
         status,

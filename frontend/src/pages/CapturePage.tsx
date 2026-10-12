@@ -7,9 +7,11 @@ import { parseReceiptText } from '@/lib/ocr'
 import type { Option, PurposeOption } from '@/lib/types'
 import { useApi } from '@/lib/useApi'
 
-const MAX_SIDE = 1800
+// The stored photo is kept small so uploads stay fast. The scanner reads a larger, sharpened
+// copy: on a long receipt the print is too small to read once shrunk to the upload size.
+const UPLOAD_MAX_SIDE = 1800
+const SCAN_MAX_SIDE = 3000
 
-// Phone photos are huge; shrink them so the scan and the upload stay fast.
 // Decodes through an <img>, which every phone browser supports and which applies the
 // photo's rotation. Older iOS versions cannot createImageBitmap() a camera file.
 function loadImage(file: File): Promise<HTMLImageElement> {
@@ -28,16 +30,47 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   })
 }
 
-async function shrinkImage(file: File): Promise<Blob> {
-  const source = await loadImage(file)
-  const scale = Math.min(1, MAX_SIDE / Math.max(source.naturalWidth, source.naturalHeight))
+function drawScaled(source: HTMLImageElement, maxSide: number) {
+  const scale = Math.min(1, maxSide / Math.max(source.naturalWidth, source.naturalHeight))
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(source.naturalWidth * scale)
   canvas.height = Math.round(source.naturalHeight * scale)
-  canvas.getContext('2d')!.drawImage(source, 0, 0, canvas.width, canvas.height)
+  canvas.getContext('2d', { willReadFrequently: true })!.drawImage(source, 0, 0, canvas.width, canvas.height)
+  return canvas
+}
+
+function toJpeg(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Could not read image'))), 'image/jpeg', 0.85),
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Could not read image'))), 'image/jpeg', quality),
   )
+}
+
+// Prepares the copy the scanner reads: greyscale with the contrast stretched, so faint
+// thermal-paper print and shadowed photos become dark text on a light background.
+function forScanning(source: HTMLImageElement) {
+  const canvas = drawScaled(source, SCAN_MAX_SIDE)
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!
+  const image = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const px = image.data
+  const histogram = new Uint32Array(256)
+  for (let i = 0; i < px.length; i += 4) {
+    const grey = (px[i] * 77 + px[i + 1] * 150 + px[i + 2] * 29) >> 8
+    px[i] = grey
+    histogram[grey]++
+  }
+  // stretch between the 2nd and 98th percentile of brightness
+  const total = px.length / 4
+  let low = 0
+  let high = 255
+  for (let sum = 0; low < 255 && (sum += histogram[low]) < total * 0.02; low++);
+  for (let sum = 0; high > 0 && (sum += histogram[high]) < total * 0.02; high--);
+  const range = Math.max(1, high - low)
+  for (let i = 0; i < px.length; i += 4) {
+    const value = Math.max(0, Math.min(255, ((px[i] - low) * 255) / range))
+    px[i] = px[i + 1] = px[i + 2] = value
+  }
+  ctx.putImageData(image, 0, 0)
+  return canvas
 }
 
 function today() {
@@ -60,12 +93,16 @@ export function CapturePage() {
   const [scanning, setScanning] = useState(false)
   const [progress, setProgress] = useState(0)
   const [scanNote, setScanNote] = useState('')
+  // the raw text the scanner read, shown on request so a wrong or missing price can be explained
+  const [scanText, setScanText] = useState('')
   const [values, setValues] = useState<ReceiptValues>({
     amount: '',
     date: today(),
     purposeId: '',
     payerId: '',
     paidByName: '',
+    paidFromAccount: '',
+    accountHolder: '',
     counterparty: '',
     note: '',
   })
@@ -83,10 +120,12 @@ export function CapturePage() {
     setError('')
     setDuplicate('')
     setScanNote('')
+    setScanText('')
     setScanning(true)
     setProgress(0)
     try {
-      const blob = await shrinkImage(file)
+      const source = await loadImage(file)
+      const blob = await toJpeg(drawScaled(source, UPLOAD_MAX_SIDE), 0.85)
       setImage(blob)
       setPreview(URL.createObjectURL(blob))
 
@@ -96,9 +135,10 @@ export function CapturePage() {
           if (m.status === 'recognizing text') setProgress(Math.round(m.progress * 100))
         },
       })
-      const { data } = await worker.recognize(blob)
+      const { data } = await worker.recognize(forScanning(source))
       await worker.terminate()
 
+      setScanText(data.text.trim())
       const scan = parseReceiptText(data.text)
       setValues((v) => ({
         ...v,
@@ -212,7 +252,19 @@ export function CapturePage() {
             Scanning receipt… {progress > 0 ? `${progress}%` : ''}
           </p>
         ) : (
-          scanNote && <p className="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-700">{scanNote}</p>
+          scanNote && (
+            <div className="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-700">
+              <p>{scanNote}</p>
+              {scanText && (
+                <details className="mt-1">
+                  <summary className="tap cursor-pointer text-xs font-semibold">Show what the scanner read</summary>
+                  <pre className="mt-1 max-h-48 overflow-auto whitespace-pre-wrap rounded bg-white p-2 text-xs text-slate-700">
+                    {scanText}
+                  </pre>
+                </details>
+              )}
+            </div>
+          )
         )}
 
         <ReceiptFields purposes={purposes} payers={payers} values={values} onChange={setValues} />

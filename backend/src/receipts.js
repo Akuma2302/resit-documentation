@@ -19,6 +19,8 @@ async function parseReceiptFields(body) {
 
   let payerId = null
   let paidByName = null
+  let paidFromAccount = null
+  let accountHolder = null
   if (purpose.direction === 'OUT') {
     const payer = await db.payer.findUnique({ where: { id: toId(body.payerId) } })
     if (!payer) return { error: 'Choose who paid.' }
@@ -26,6 +28,14 @@ async function parseReceiptFields(body) {
     if (needsPersonName(payer)) {
       paidByName = String(body.paidByName ?? '').trim().slice(0, 80)
       if (!paidByName) return { error: 'Enter the name of the staff member who paid.' }
+    }
+    if (!['COMPANY', 'PERSONAL'].includes(body.paidFromAccount)) {
+      return { error: 'Choose which account it was paid from.' }
+    }
+    paidFromAccount = body.paidFromAccount
+    if (paidFromAccount === 'PERSONAL') {
+      accountHolder = String(body.accountHolder ?? '').trim().slice(0, 80)
+      if (!accountHolder) return { error: 'Enter whose personal account it was paid from.' }
     }
   }
 
@@ -37,6 +47,8 @@ async function parseReceiptFields(body) {
       purposeId: purpose.id,
       payerId,
       paidByName,
+      paidFromAccount,
+      accountHolder,
       counterparty: String(body.counterparty ?? '').trim().slice(0, 120),
       note: String(body.note ?? '').trim().slice(0, 1000),
     },
@@ -78,6 +90,8 @@ function toReceiptJson(r) {
     payerId: r.payerId,
     payerName: r.payer ? r.payer.name : null,
     paidByName: r.paidByName ?? '',
+    paidFromAccount: r.paidFromAccount ?? '',
+    accountHolder: r.accountHolder ?? '',
     counterparty: r.counterparty,
     note: r.note,
     status: r.status,

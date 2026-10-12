@@ -4,7 +4,7 @@ import { Icon } from '@/components/Icon'
 import { PageHeader } from '@/components/PageHeader'
 import { DuplicateBadge, StatusBadge } from '@/components/StatusBadge'
 import { api, downloadFile } from '@/lib/api'
-import { directionLabel, formatDate, formatRM, payerLabel } from '@/lib/format'
+import { accountLabel, directionLabel, formatDate, formatRM, payerLabel } from '@/lib/format'
 import type { PurposeOption, Receipt } from '@/lib/types'
 import { useApi } from '@/lib/useApi'
 
@@ -199,6 +199,7 @@ export function ReceiptsPage() {
                     {r.counterparty && ` · ${r.counterparty}`}
                   </p>
                   {r.payerName && <p className="truncate text-xs text-slate-500">Paid by {payerLabel(r)}</p>}
+                  {accountLabel(r) && <p className="truncate text-xs text-slate-500">From {accountLabel(r)}</p>}
                 </div>
                 <p className="shrink-0 font-extrabold tabular-nums">{formatRM(r.amountCents)}</p>
               </div>
@@ -224,7 +225,7 @@ export function ReceiptsPage() {
           {!data && !error && <li className="px-4 py-3 text-slate-500">Loading…</li>}
         </ul>
         <div className="hidden overflow-x-auto md:block">
-          <table className="w-full min-w-[720px]">
+          <table className="w-full min-w-[860px]">
             <thead>
               <tr>
                 <th className="th">Date</th>
@@ -232,6 +233,7 @@ export function ReceiptsPage() {
                 <th className="th">Purpose</th>
                 <th className="th">Paid to / from</th>
                 <th className="th">Paid by</th>
+                <th className="th">Account</th>
                 <th className="th text-right">Amount</th>
                 <th className="th">Status</th>
                 <th className="th"></th>
@@ -245,6 +247,7 @@ export function ReceiptsPage() {
                   <td className="td">{r.purposeName}</td>
                   <td className="td">{r.counterparty || '—'}</td>
                   <td className="td">{payerLabel(r) || '—'}</td>
+                  <td className="td">{accountLabel(r) || '—'}</td>
                   <td className="td whitespace-nowrap text-right tabular-nums">{formatRM(r.amountCents)}</td>
                   <td className="td">
                     <div className="flex flex-wrap gap-1">
@@ -272,14 +275,14 @@ export function ReceiptsPage() {
               ))}
               {data && data.receipts.length === 0 && (
                 <tr>
-                  <td className="td text-slate-500" colSpan={8}>
+                  <td className="td text-slate-500" colSpan={9}>
                     No receipts match these filters.
                   </td>
                 </tr>
               )}
               {!data && !error && (
                 <tr>
-                  <td className="td text-slate-500" colSpan={8}>
+                  <td className="td text-slate-500" colSpan={9}>
                     Loading…
                   </td>
                 </tr>

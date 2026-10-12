@@ -2,6 +2,12 @@ const ExcelJS = require('exceljs')
 const PDFDocument = require('pdfkit')
 const { directionLabel, formatDate, formatRM, statusLabel } = require('./format')
 
+function accountLabel(r) {
+  if (r.paidFromAccount === 'COMPANY') return 'Company'
+  if (r.paidFromAccount === 'PERSONAL') return r.accountHolder ? `Personal (${r.accountHolder})` : 'Personal'
+  return ''
+}
+
 // Flattens receipts (loaded with receiptInclude) into export rows.
 function toRows(receipts) {
   return receipts.map((r) => ({
@@ -11,6 +17,7 @@ function toRows(receipts) {
     amountCents: r.amountCents,
     direction: r.direction,
     paidBy: r.payer ? (r.paidByName ? `${r.payer.name} (${r.paidByName})` : r.payer.name) : '',
+    account: accountLabel(r),
     counterparty: r.counterparty,
     note: r.note,
     status: statusLabel[r.status] ?? r.status,
@@ -27,6 +34,7 @@ async function toXlsx(rows) {
     { header: 'Purpose', key: 'purpose', width: 18 },
     { header: 'Amount (RM)', key: 'amount', width: 14, style: { numFmt: '#,##0.00' } },
     { header: 'Paid by', key: 'paidBy', width: 22 },
+    { header: 'Paid from account', key: 'account', width: 22 },
     { header: 'Paid to / Received from', key: 'counterparty', width: 28 },
     { header: 'Note', key: 'note', width: 36 },
     { header: 'Status', key: 'status', width: 11 },
@@ -49,10 +57,11 @@ function toPdf(rows) {
     { label: 'Purpose', width: 90, value: (r) => r.purpose },
     { label: 'Amount', width: 78, value: (r) => formatRM(r.amountCents), right: true },
     { label: 'Paid by', width: 90, value: (r) => r.paidBy },
-    { label: 'Paid to / from', width: 125, value: (r) => r.counterparty },
-    { label: 'Note', width: 135, value: (r) => r.note },
+    { label: 'Account', width: 80, value: (r) => r.account },
+    { label: 'Paid to / from', width: 105, value: (r) => r.counterparty },
+    { label: 'Note', width: 85, value: (r) => r.note },
     { label: 'Status', width: 56, value: (r) => r.status },
-    { label: 'Submitted by', width: 90, value: (r) => r.submittedBy },
+    { label: 'Submitted by', width: 70, value: (r) => r.submittedBy },
   ]
   const left = doc.page.margins.left
   const bottom = doc.page.height - doc.page.margins.bottom

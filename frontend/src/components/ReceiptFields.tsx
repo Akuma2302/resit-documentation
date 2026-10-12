@@ -6,6 +6,8 @@ export type ReceiptValues = {
   purposeId: string
   payerId: string
   paidByName: string
+  paidFromAccount: string
+  accountHolder: string
   counterparty: string
   note: string
 }
@@ -127,6 +129,52 @@ export function ReceiptFields({ purposes, payers, values, onChange }: Props) {
             autoCapitalize="words"
             value={values.paidByName}
             onChange={(e) => set({ paidByName: e.target.value })}
+            maxLength={80}
+            required
+          />
+        </div>
+      )}
+
+      {isExpense && (
+        <div>
+          <label className="label" htmlFor="paidFromAccount">
+            Paid from
+          </label>
+          <select
+            className="input"
+            id="paidFromAccount"
+            name="paidFromAccount"
+            value={values.paidFromAccount}
+            onChange={(e) =>
+              set({
+                paidFromAccount: e.target.value,
+                // a staff member paying personally is usually the account holder, so start with their name
+                ...(e.target.value === 'PERSONAL' && !values.accountHolder && { accountHolder: values.paidByName }),
+              })
+            }
+            required
+          >
+            <option value="">Choose which account</option>
+            <option value="COMPANY">Company account</option>
+            <option value="PERSONAL">Personal account</option>
+          </select>
+        </div>
+      )}
+
+      {isExpense && values.paidFromAccount === 'PERSONAL' && (
+        <div>
+          <label className="label" htmlFor="accountHolder">
+            Whose account
+          </label>
+          <input
+            className="input"
+            id="accountHolder"
+            name="accountHolder"
+            placeholder="Name of the account holder"
+            autoComplete="name"
+            autoCapitalize="words"
+            value={values.accountHolder}
+            onChange={(e) => set({ accountHolder: e.target.value })}
             maxLength={80}
             required
           />

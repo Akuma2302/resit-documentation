@@ -24,6 +24,13 @@ export function payerLabel(r: { payerName: string | null; paidByName: string }) 
   return r.paidByName ? `${r.payerName} (${r.paidByName})` : r.payerName
 }
 
+// "Company account", or "Personal account (Ali)" with the holder's name
+export function accountLabel(r: { paidFromAccount: string; accountHolder: string }) {
+  if (r.paidFromAccount === 'COMPANY') return 'Company account'
+  if (r.paidFromAccount === 'PERSONAL') return r.accountHolder ? `Personal account (${r.accountHolder})` : 'Personal account'
+  return ''
+}
+
 export const directionLabel = (direction: string) => (direction === 'IN' ? 'Sale' : 'Buy')
 
 export const statusLabel: Record<string, string> = {
