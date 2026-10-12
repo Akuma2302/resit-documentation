@@ -54,6 +54,9 @@ model Receipt {
   paidFromAccount   String?
   // whose account it was, when paid from a personal account
   accountHolder     String?
+  // bank and account number of that personal account, when given
+  accountBank       String?
+  accountNumber     String?
   // paid to (expense) or received from (sale)
   counterparty      String        @default("")
   note              String        @default("")

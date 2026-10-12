@@ -24,11 +24,16 @@ export function payerLabel(r: { payerName: string | null; paidByName: string }) 
   return r.paidByName ? `${r.payerName} (${r.paidByName})` : r.payerName
 }
 
-// "Company account", or "Personal account (Ali)" with the holder's name
-export function accountLabel(r: { paidFromAccount: string; accountHolder: string }) {
+// "Company account", or "Personal account (Ali) · Maybank ••••1234"
+// Lists only show the last four digits of a personal account number; the full number is on
+// the receipt's own page and in the Excel export.
+type AccountInfo = { paidFromAccount: string; accountHolder: string; accountBank: string; accountNumber: string }
+
+export function accountLabel(r: AccountInfo) {
   if (r.paidFromAccount === 'COMPANY') return 'Company account'
-  if (r.paidFromAccount === 'PERSONAL') return r.accountHolder ? `Personal account (${r.accountHolder})` : 'Personal account'
-  return ''
+  if (r.paidFromAccount !== 'PERSONAL') return ''
+  const bank = [r.accountBank, r.accountNumber && `••••${r.accountNumber.slice(-4)}`].filter(Boolean).join(' ')
+  return `Personal account${r.accountHolder ? ` (${r.accountHolder})` : ''}${bank ? ` · ${bank}` : ''}`
 }
 
 export const directionLabel = (direction: string) => (direction === 'IN' ? 'Sale' : 'Buy')

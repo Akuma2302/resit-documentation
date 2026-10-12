@@ -19,6 +19,8 @@ const toValues = (r: Receipt): ReceiptValues => ({
   paidByName: r.paidByName,
   paidFromAccount: r.paidFromAccount,
   accountHolder: r.accountHolder,
+  accountBank: r.accountBank,
+  accountNumber: r.accountNumber,
   counterparty: r.counterparty,
   note: r.note,
 })

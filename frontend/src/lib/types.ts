@@ -18,6 +18,8 @@ export type Receipt = {
   paidFromAccount: 'COMPANY' | 'PERSONAL' | ''
   // whose account, when paid from a personal one
   accountHolder: string
+  accountBank: string
+  accountNumber: string
   counterparty: string
   note: string
   status: 'PENDING' | 'APPROVED' | 'REJECTED'

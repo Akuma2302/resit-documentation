@@ -8,9 +8,40 @@ export type ReceiptValues = {
   paidByName: string
   paidFromAccount: string
   accountHolder: string
+  accountBank: string
+  accountNumber: string
   counterparty: string
   note: string
 }
+
+// Banks and e-wallets commonly used in Malaysia, for the personal account dropdown
+const BANKS = [
+  'Maybank',
+  'CIMB Bank',
+  'Public Bank',
+  'RHB Bank',
+  'Hong Leong Bank',
+  'AmBank',
+  'Bank Islam',
+  'Bank Rakyat',
+  'BSN (Bank Simpanan Nasional)',
+  'Affin Bank',
+  'Alliance Bank',
+  'Bank Muamalat',
+  'MBSB Bank',
+  'Agrobank',
+  'OCBC Bank',
+  'UOB',
+  'HSBC Bank',
+  'Standard Chartered',
+  'Al Rajhi Bank',
+  'Kuwait Finance House',
+  'GXBank',
+  'AEON Bank',
+  'Boost Bank',
+  "Touch 'n Go eWallet",
+  'Other',
+]
 
 type Props = {
   purposes: PurposeOption[]
@@ -178,6 +209,46 @@ export function ReceiptFields({ purposes, payers, values, onChange }: Props) {
             maxLength={80}
             required
           />
+        </div>
+      )}
+
+      {isExpense && values.paidFromAccount === 'PERSONAL' && (
+        <div className="grid gap-4 sm:grid-cols-2 sm:gap-3">
+          <div>
+            <label className="label" htmlFor="accountBank">
+              Bank (optional)
+            </label>
+            <select
+              className="input"
+              id="accountBank"
+              name="accountBank"
+              value={values.accountBank}
+              onChange={(e) => set({ accountBank: e.target.value })}
+            >
+              <option value="">Choose bank</option>
+              {/* keeps a bank saved earlier selectable even if it is not in the list */}
+              {values.accountBank && !BANKS.includes(values.accountBank) && <option>{values.accountBank}</option>}
+              {BANKS.map((bank) => (
+                <option key={bank}>{bank}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label" htmlFor="accountNumber">
+              Account number (optional)
+            </label>
+            <input
+              className="input"
+              id="accountNumber"
+              name="accountNumber"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="Digits only"
+              value={values.accountNumber}
+              onChange={(e) => set({ accountNumber: e.target.value.replace(/[^\d\s-]/g, '') })}
+              maxLength={26}
+            />
+          </div>
         </div>
       )}
 

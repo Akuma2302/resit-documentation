@@ -103,6 +103,8 @@ export function CapturePage() {
     paidByName: '',
     paidFromAccount: '',
     accountHolder: '',
+    accountBank: '',
+    accountNumber: '',
     counterparty: '',
     note: '',
   })

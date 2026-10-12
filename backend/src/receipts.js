@@ -21,6 +21,8 @@ async function parseReceiptFields(body) {
   let paidByName = null
   let paidFromAccount = null
   let accountHolder = null
+  let accountBank = null
+  let accountNumber = null
   if (purpose.direction === 'OUT') {
     const payer = await db.payer.findUnique({ where: { id: toId(body.payerId) } })
     if (!payer) return { error: 'Choose who paid.' }
@@ -36,6 +38,11 @@ async function parseReceiptFields(body) {
     if (paidFromAccount === 'PERSONAL') {
       accountHolder = String(body.accountHolder ?? '').trim().slice(0, 80)
       if (!accountHolder) return { error: 'Enter whose personal account it was paid from.' }
+      // bank and number are optional; spaces and dashes in the number are dropped
+      accountBank = String(body.accountBank ?? '').trim().slice(0, 60) || null
+      const digits = String(body.accountNumber ?? '').replace(/[\s-]/g, '')
+      if (digits && !/^\d{5,20}$/.test(digits)) return { error: 'The account number should be 5 to 20 digits.' }
+      accountNumber = digits || null
     }
   }
 
@@ -49,6 +56,8 @@ async function parseReceiptFields(body) {
       paidByName,
       paidFromAccount,
       accountHolder,
+      accountBank,
+      accountNumber,
       counterparty: String(body.counterparty ?? '').trim().slice(0, 120),
       note: String(body.note ?? '').trim().slice(0, 1000),
     },
@@ -92,6 +101,8 @@ function toReceiptJson(r) {
     paidByName: r.paidByName ?? '',
     paidFromAccount: r.paidFromAccount ?? '',
     accountHolder: r.accountHolder ?? '',
+    accountBank: r.accountBank ?? '',
+    accountNumber: r.accountNumber ?? '',
     counterparty: r.counterparty,
     note: r.note,
     status: r.status,

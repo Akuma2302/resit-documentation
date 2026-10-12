@@ -18,6 +18,8 @@ function toRows(receipts) {
     direction: r.direction,
     paidBy: r.payer ? (r.paidByName ? `${r.payer.name} (${r.paidByName})` : r.payer.name) : '',
     account: accountLabel(r),
+    bank: r.accountBank ?? '',
+    accountNumber: r.accountNumber ?? '',
     counterparty: r.counterparty,
     note: r.note,
     status: statusLabel[r.status] ?? r.status,
@@ -35,6 +37,9 @@ async function toXlsx(rows) {
     { header: 'Amount (RM)', key: 'amount', width: 14, style: { numFmt: '#,##0.00' } },
     { header: 'Paid by', key: 'paidBy', width: 22 },
     { header: 'Paid from account', key: 'account', width: 22 },
+    { header: 'Bank', key: 'bank', width: 18 },
+    // text format keeps leading zeros and stops Excel showing long numbers as 1.23E+11
+    { header: 'Account number', key: 'accountNumber', width: 20, style: { numFmt: '@' } },
     { header: 'Paid to / Received from', key: 'counterparty', width: 28 },
     { header: 'Note', key: 'note', width: 36 },
     { header: 'Status', key: 'status', width: 11 },
