@@ -16,13 +16,39 @@ function amountsIn(line: string): number[] {
   return found
 }
 
+// Amounts marked with the currency, before or after the number: "RM 12.50", "MYR12", "45.00 MYR".
+// Unlike plain amounts these may have no decimals, since the currency mark shows it is money.
+const CURRENCY = String.raw`R\s?M|MYR`
+const NUMBER = String.raw`(\d{1,3}(?:,\d{3})+|\d+)(?:\s?[.,]\s?(\d{1,2}))?(?![\d.,]*\d)`
+const CURRENCY_BEFORE = new RegExp(String.raw`(?:^|[^A-Za-z])(?:${CURRENCY})\s*[:.]?\s*${NUMBER}`, 'gi')
+const CURRENCY_AFTER = new RegExp(String.raw`${NUMBER}\s*(?:${CURRENCY})(?![A-Za-z])`, 'gi')
+
+function currencyAmountsIn(line: string): number[] {
+  const found: number[] = []
+  for (const pattern of [CURRENCY_BEFORE, CURRENCY_AFTER]) {
+    for (const m of line.matchAll(pattern)) {
+      const value = parseFloat(`${m[1].replace(/,/g, '')}.${(m[2] ?? '0').padEnd(2, '0')}`)
+      if (value > 0 && value < 1_000_000) found.push(value)
+    }
+  }
+  return found
+}
+
+// On a line, an amount marked RM/MYR is trusted over unmarked numbers
+const moneyIn = (line: string) => {
+  const marked = currencyAmountsIn(line)
+  return marked.length ? marked : amountsIn(line)
+}
+
+const PAYMENT_LINE = /\b(cash|tunai|change|baki|tendered|paid)\b/i
+
 function findAmount(lines: string[]): string {
   let best: number | null = null
   let bestRank = -1
   lines.forEach((line, i) => {
     if (!TOTAL_WORDS.test(line) || NOT_TOTAL.test(line)) return
     // the amount is sometimes printed on the line under the word "Total"
-    const values = amountsIn(line).length ? amountsIn(line) : amountsIn(lines[i + 1] ?? '')
+    const values = moneyIn(line).length ? moneyIn(line) : moneyIn(lines[i + 1] ?? '')
     if (!values.length) return
     const rank = /grand\s*total/i.test(line) ? 2 : 1
     const value = Math.max(...values)
@@ -31,9 +57,15 @@ function findAmount(lines: string[]): string {
       bestRank = rank
     }
   })
+  const candidates = lines.filter((l) => !PAYMENT_LINE.test(l) && !NOT_TOTAL.test(l))
   if (best === null) {
-    // no labelled total: fall back to the largest amount that is not cash/change
-    const all = lines.filter((l) => !/\b(cash|tunai|change|baki)\b/i.test(l)).flatMap(amountsIn)
+    // no labelled total: an amount marked RM or MYR is the price
+    const marked = candidates.flatMap(currencyAmountsIn)
+    if (marked.length) best = Math.max(...marked)
+  }
+  if (best === null) {
+    // last resort: the largest amount that is not cash or change
+    const all = lines.filter((l) => !PAYMENT_LINE.test(l)).flatMap(amountsIn)
     if (all.length) best = Math.max(...all)
   }
   return best === null ? '' : (best as number).toFixed(2)
